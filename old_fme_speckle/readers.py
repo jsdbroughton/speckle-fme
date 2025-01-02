@@ -94,6 +94,9 @@ def process_stream(stream_wrapper: StreamWrapper, resolve_branches: bool = False
     # TODO: resolve_branches is not implemented
     # TODO: In general a process for cascading to all objects from a parent stream should be implemented
 
+      except SpeckleException as e:
+        logger.log_message_string(str(e.message), 2)
+        logger.log_message_string(str(traceback.print_tb(e.__traceback__)), 2)
     fme_stream_feature = FMEFeature()
 
     set_speckle_feature_type(fme_stream_feature, "Speckle.Stream")
@@ -114,6 +117,9 @@ def process_stream(stream_wrapper: StreamWrapper, resolve_branches: bool = False
 
         set_feature_rejection(fme_stream_feature, exception.message)
 
+      except SpeckleException as e:
+        logger.log_message_string(str(e.message), 2)
+        logger.log_message_string(str(traceback.print_tb(e.__traceback__)), 2)
     return [fme_stream_feature]
 
 
@@ -134,6 +140,9 @@ def process_branch(stream_wrapper: StreamWrapper, resolve_commits: bool = False)
     feature_collection: list[FMEFeature] = []
     fme_branch_feature = FMEFeature()
 
+      except SpeckleException as e:
+        logger.log_message_string(str(e.message), 2)
+        logger.log_message_string(str(traceback.print_tb(e.__traceback__)), 2)
     set_speckle_feature_type(fme_branch_feature, "Speckle.Branch")
     set_feature_attribute(fme_branch_feature, "speckle_type", "branch")
 
@@ -167,6 +176,9 @@ def process_branch(stream_wrapper: StreamWrapper, resolve_commits: bool = False)
     return feature_collection
 
 
+      except SpeckleException as e:
+        logger.log_message_string(str(e.message), 2)
+        logger.log_message_string(str(traceback.print_tb(e.__traceback__)), 2)
 def process_commit(stream_wrapper: StreamWrapper, process_child_objects: bool = True) -> List[FMEFeature]:
     """Processes a Speckle commit and populates an FMEFeature.
 
