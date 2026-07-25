@@ -1,0 +1,98 @@
+! Speckle FME Format — metafile
+! Registers the SPECKLE format in FME's Reader/Writer Gallery and drives parameter dialogs.
+! See: https://docs.safe.com/fme/html/FME_Metafiles/content.html
+
+FORMAT_NAME SPECKLE
+SOURCE_KEYWORD SPECKLE
+DESTINATION_KEYWORD SPECKLE
+
+! ─── Preambles ────────────────────────────────────────────────────────────────
+SOURCE_PREAMBLE
+DEFAULT_MACRO SPECKLE_SERVER_URL https://next.speckle.dev
+DEFAULT_MACRO SPECKLE_PROJECT_ID ""
+DEFAULT_MACRO SPECKLE_MODEL_ID ""
+DEFAULT_MACRO SPECKLE_VERSION_ID ""
+END_SOURCE_PREAMBLE
+
+DESTINATION_PREAMBLE
+DEFAULT_MACRO SPECKLE_SERVER_URL https://next.speckle.dev
+DEFAULT_MACRO SPECKLE_PROJECT_ID ""
+DEFAULT_MACRO SPECKLE_MODEL_ID main
+DEFAULT_MACRO SPECKLE_COMMIT_MESSAGE ""
+END_DESTINATION_PREAMBLE
+
+! ─── Reader binding ────────────────────────────────────────────────────────────
+! Keywords prefixed with - are available in readSchema() but NOT written to the mapping file.
+SOURCE_READER SPECKLE \
+  -SPECKLE_SERVER_URL $(SPECKLE_SERVER_URL) \
+  -SPECKLE_PROJECT_ID $(SPECKLE_PROJECT_ID) \
+  -SPECKLE_MODEL_ID $(SPECKLE_MODEL_ID)
+
+! ─── Reader settings dialog ───────────────────────────────────────────────────
+SOURCE_SETTINGS
+GUI TITLE Speckle Source Settings
+
+DEFAULT_VALUE SPECKLE_SERVER_URL https://next.speckle.dev
+GUI TEXT SPECKLE_SERVER_URL Server URL:
+
+DEFAULT_VALUE SPECKLE_TOKEN ""
+GUI OPTIONAL PASSWORD SPECKLE_TOKEN Personal Access Token:
+
+DEFAULT_VALUE SPECKLE_PROJECT_ID ""
+GUI TEXT SPECKLE_PROJECT_ID Project ID:
+
+DEFAULT_VALUE SPECKLE_MODEL_ID ""
+GUI OPTIONAL TEXT SPECKLE_MODEL_ID Model ID (blank = all models):
+
+DEFAULT_VALUE SPECKLE_VERSION_ID ""
+GUI OPTIONAL TEXT SPECKLE_VERSION_ID Version ID (blank = latest):
+
+END_SOURCE_SETTINGS
+
+! ─── Writer settings dialog ───────────────────────────────────────────────────
+DESTINATION_SETTINGS
+GUI TITLE Speckle Destination Settings
+
+DEFAULT_VALUE SPECKLE_SERVER_URL https://next.speckle.dev
+GUI TEXT SPECKLE_SERVER_URL Server URL:
+
+DEFAULT_VALUE SPECKLE_TOKEN ""
+GUI OPTIONAL PASSWORD SPECKLE_TOKEN Personal Access Token:
+
+DEFAULT_VALUE SPECKLE_PROJECT_ID ""
+GUI TEXT SPECKLE_PROJECT_ID Project ID:
+
+DEFAULT_VALUE SPECKLE_MODEL_ID main
+GUI TEXT SPECKLE_MODEL_ID Model Name:
+
+DEFAULT_VALUE SPECKLE_COMMIT_MESSAGE ""
+GUI OPTIONAL TEXT SPECKLE_COMMIT_MESSAGE Commit Message:
+
+END_DESTINATION_SETTINGS
+
+! ─── Feature type / geometry ───────────────────────────────────────────────────
+DEF_LINE_TEMPLATE {FME_GEN_GROUP_NAME}
+
+! ATTRIB_CHANGE: feature types accept mixed geometry (Speckle is heterogeneous)
+DEF_LINE_BREAK ATTRIB_CHANGE
+
+GEOM_MAP speckle_mesh     fme_solid    \
+         speckle_mesh     fme_surface  \
+         speckle_point    fme_point    \
+         speckle_line     fme_line     \
+         speckle_no_geom  fme_no_geom
+
+! ─── Attribute type mapping ────────────────────────────────────────────────────
+ATTR_TYPE_MAP \
+  string        fme_buffer          \
+  string        fme_varchar(width)  \
+  string        fme_char(width)     \
+  string        fme_xml             \
+  string        fme_json            \
+  real64        fme_real64          \
+  real32        fme_real32          \
+  int32         fme_int32           \
+  int64         fme_int64           \
+  logical       fme_boolean         \
+  string        fme_datetime        \
+  string        fme_date
