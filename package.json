@@ -1,0 +1,11 @@
+{
+  "name": "speckle-fme",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "uac": "uac"
+  },
+  "devDependencies": {
+    "universal-ai-config": "latest"
+  }
+}
