@@ -75,3 +75,27 @@ fme/Workspaces/Sandbox.fmw.recover
 .gitignore.orig
 
 .DS_Store
+
+# >>> universal-ai-config >>>
+/universal-ai-config.overrides.*
+.claude/rules/
+.claude/skills/
+.claude/agents/
+.claude/settings.json
+.claude/*.local.*
+.github/copilot-instructions.md
+.github/instructions/
+.github/skills/
+.github/agents/
+.github/hooks/
+.cursor/rules/
+.cursor/skills/
+.cursor/hooks.json
+.codex/
+.agents/skills/
+AGENTS.md
+**/AGENTS.override.md
+.mcp.json
+.vscode/mcp.json
+.cursor/mcp.json
+# <<< universal-ai-config <<<
