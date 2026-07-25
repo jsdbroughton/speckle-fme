@@ -13,29 +13,43 @@ Run these steps immediately at the start of any session involving git or file ch
 git config --global --add safe.directory '*'
 ```
 
-This fixes the "dubious ownership" error git throws when the sandbox user doesn't own the mounted volume. Safe to run even when not needed.
+## Step 2: Configure push auth
 
-## Step 2: Verify git works
+Check if `.git/sandbox-credentials` exists in the repo:
 
-Run `git status` in the repo. If it still fails, note the error and continue — file changes still work, git staging/committing just won't.
+```bash
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+ls "$REPO_ROOT/.git/sandbox-credentials" 2>/dev/null && echo "found" || echo "missing"
+```
 
-## Step 3: Tell the user once, briefly
+**If found** — configure the credential store and verify:
 
-One sentence is enough: *"I've fixed the git ownership issue — I'll make the changes and give you the push command at the end."*
+```bash
+git config --global credential.helper "store --file $REPO_ROOT/.git/sandbox-credentials"
+git -C "$REPO_ROOT" push --dry-run 2>&1
+```
 
-Don't apologise or over-explain. The user knows the sandbox has limits.
+If the dry-run succeeds, push will work normally. Say nothing to the user — just proceed.
 
-## Step 4: Do the work
+**If missing** — tell the user once, briefly:
 
-Make file changes and commits as normal. Do NOT attempt `git push` — the sandbox has no access to SSH keys, macOS Keychain, or any credential store. This is a hard limit of the sandbox design.
+> "To enable push from the sandbox, create `.git/sandbox-credentials` in the repo (inside `.git/` so it's never committed):
+> ```
+> https://oauth2:YOUR_PAT@github.com
+> ```
+> Generate a PAT at github.com/settings/tokens with `repo` scope. Until then I'll make the changes and give you the push command at the end."
 
-## Step 5: End-of-session push block
+The file lives inside `.git/` — git never commits its own internals, so no gitignore entry is needed and there's no risk of accidental exposure.
 
-When work is done, close with a ready-to-paste block:
+## Step 3: Do the work
+
+Make file changes and commits normally. If credentials are configured, `git push` works directly.
+
+## Step 4: End-of-session (if no credentials)
+
+When credentials are missing and push wasn't possible, close with:
 
 ```
 Run to push:
 git push
 ```
-
-Expand if needed — e.g. `git push origin <branch>` or a note about setting upstream. Keep it minimal.
