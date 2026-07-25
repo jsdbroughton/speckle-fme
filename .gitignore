@@ -68,13 +68,58 @@ venv.bak/
 
 ##########
 
+# Node / uac tooling
+node_modules/
+
+# uv
+.venv/
+.uv/
+# uv.lock is intentionally NOT ignored — commit it for reproducible installs
+
+# Type checkers
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyright/
+pyrightconfig.json
+.pyre/
+
+# Linters
+.ruff_cache/
+
+# Profiling
+*.prof
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# JetBrains / VS Code
+.idea/
+.vscode/
+*.iml
+
+# Temporary / scratch files
+*.tmp
+*.bak
+*.swp
+*~
+
+# FME packages (built artifacts)
+*.fpkg
+
+# Speckle bundle temp dirs
+speckle-receive-*/
+speckle-publish-*/
+
 #FME
 fme/Workspaces/Sandbox.fmw.recover
 *.recover
-*.recover
 .gitignore.orig
-
-.DS_Store
 
 # >>> universal-ai-config >>>
 /universal-ai-config.overrides.*
