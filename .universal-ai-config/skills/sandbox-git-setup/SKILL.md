@@ -1,6 +1,6 @@
 ---
 name: sandbox-git-setup
-description: Fix git sandbox issues at the start of any Cowork or Cursor background-agent session that involves git operations, file edits, or code changes. Fixes "dubious ownership" errors and sets correct expectations about GitHub push auth limitations.
+description: Fix git sandbox issues at the start of any Cowork or Cursor background-agent session that involves git operations, file edits, or code changes. Fixes "dubious ownership" errors and configures GitHub push auth from a credential file stored safely inside .git/.
 ---
 
 # Sandbox Git Setup
