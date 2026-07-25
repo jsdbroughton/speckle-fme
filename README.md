@@ -1,64 +1,114 @@
-<h1 align="center">
-  <img src="https://user-images.githubusercontent.com/2679513/131189167-18ea5fe1-c578-47f6-9785-3748178e4312.png" width="150px"/><br/>
-  Speckle | FME
-</h1>
-<h3 align="center">
-    Connector for Spatial Data to and from FME
-</h3>
+# Speckle Connector for FME
 
-A custom reader/writer for FME to connect and query a Speckle Server. As this is all being developed for an alpha release, the description of any steps here or any features that may emerge are in total flux.
+A native FME Format Reader/Writer for [Speckle Next](https://next.speckle.dev) — reads and writes Speckle projects as a first-class FME format using the Speckle Next data plane (parquet bundle + SGEO geometry).
 
-## What is Speckle?
+> **Status:** Stage 0 — toolchain validation. November 2026 milestone.
 
-Speckle is an open source software platform that helps you get in control of your own data.
-Speckle stores your 3D models and BIM data directly inside a database in a transparent and accessible way.
+## Overview
 
-## What is FME?
+This connector is built as an [FME Packages SDK](https://docs.safe.com/fme/html/fmepython/) plugin (Python Pluginbuilder API) and distributed as an `.fpkg` via FME Hub. It targets **Speckle Next** (`next.speckle.dev`) exclusively and the three-artefact parquet bundle format — not the legacy v3 object graph.
 
-The Feature Manipulation Engine (FME) is a platform that streamlines the translation and analysis of spatial data between geometric and digital formats. It is intended especially for use with geographic information system (GIS), computer-aided design (CAD) and raster graphics software. It can augment any dataset with information from another.
+Key design choices:
 
-![FME Custom Connector](./documentation/speckle-fme.png)
+- **Format Reader/Writer, not a transformer pair** — gallery presence, native parameter dialogs, Web Connections support
+- **Bundle pipeline** (`specklepy[bundle]`) for geometry — does not use `operations.send()` / `operations.receive()`
+- **DuckDB + EAV parquet** for attribute queries and schema discovery
+- **`speckle_fme_core`** is a standalone, FME-free module that can be unit tested independently
 
-## Repo Structure
+## Requirements
 
-This repo contains the FME Connectors for Speckle 2.0. It is written in `python` and uses the [Speckle Python SDK](https://github.com/specklesystems/speckle-py) and the [FME Python SDK](http://docs.safe.com/fme/html/fmepython/).
+- FME ≥ 2026.1
+- Python ≥ 3.10 (matching FME's embedded runtime — see open contract C-2.6)
+- `specklepy[bundle]` — `pyarrow>=17`, `duckdb>=1.1`
+- Speckle Next account and Personal Access Token
 
-The python code used within the connectors is developed external to FME PythonCaller transformer for ease of maintenance and testing. The published connectors embed the scripts, wrap these callers into Custom Transformers that allow for handling of input and output parameters – all of which are a arranged with a somewhat unique paradigm to FME relative to other visual scripting platforms.
+## Repository Structure
 
-There is no current plan to describe how FME works within this repo.
-## Roadmap
+```
+formats/              FME metafile (.fmf) — format registration and GUI dialogs
+python/               FME plugin entry point (FME_createReader / FME_createWriter)
+speckle_fme_core/     Core module — auth, bundle pipeline, geometry, schema
+  auth.py             SpeckleClient factory and token resolution
+  api.py              Thin wrappers around specklepy client resources
+  bundle_publish.py   FME features → ObjectsArtifactPipeline → upload
+  bundle_receive.py   v2 artifacts → parquet → FME features
+  schema.py           readSchema() helpers (EAV paths, container names)
+  geometry/
+    fme_to_speckle.py FMEGeometry → Speckle geometry → sgeo.encode()
+    speckle_to_fme.py SGEO blobs → FMEGeometry
+  reader.py           FMEReader Pluginbuilder class
+  writer.py           FMEWriter Pluginbuilder class
+tests/
+  conftest.py         pytest fixtures (client, test model lifecycle)
+  test_geometry.py    SGEO encode/decode round-trips (no FME, no server)
+  test_bundle_publish.py  End-to-end Publish (integration, requires server)
+  test_bundle_receive.py  End-to-end Receive (integration, requires server)
+typings/fmeobjects/   fmeobjects stub typings for IDE type-checking
+package.yml           fme-packager manifest
+pyproject.toml        Python project / dependency definition (uv)
+```
 
-**What can it do?**
+## Development Setup
 
-FME doesn't straightforwardly allow for additional UI elements, so the first target is the publication of a series of custom FME Trasnformers that mimic the Grasshopper tools' interactions.
+```bash
+git clone https://github.com/jsdbroughton/speckle-fme
+cd speckle-fme
+uv venv && uv sync
+cp .env.example .env   # fill in SPECKLE_TOKEN and test project IDs
+```
 
-These implementations will be Transformer based rather than directly into a Reader/Writer package. This is to allow the requirements to settle before freezing and working on a UI.
+### Unit tests (no FME, no server)
 
-Key to the FME connection to Speckle will be to maximise the usefulness of the FME part of the workflow by maximising the genericity of Features as they are read without a strong view of how this will impact on writing future re-use. i.e. Speckle > FME > Speckle prioritised over onward connections.
+```bash
+uv run pytest tests/test_basic_speckle_installation_check.py tests/test_geometry.py -v
+```
 
-**what is different**
+### Integration tests (requires Speckle Next credentials in `.env`)
 
-In addition to the UI difference to other visual node programming examples like Sverchok/Blender, Grasshopper or Dynamo, FME also handles data and data flow in a quite different manner.
+```bash
+uv run pytest tests/test_bundle_publish.py tests/test_bundle_receive.py -v
+```
 
-FME can handle many different datatypes, but all are held as properties within "features". In FME everything is a Feature (consider a row in a table) and no data is not in a feature*.
+### Loading in FME Workbench (dev loop)
 
-As such the wiring and consecutive blending of datatypes is fundamentally different. In Grasshopper a Node can have separate entry points for strings, numbers, boolean flags and geometry, etc. In FME, transformers we handle features. In the OOTB python callers, there is a single point of entry for a stream of features. The transformation may have logic within it that is selective but in essence every transformer acts on every feature in the stream.
+```bash
+# Build and install the .fpkg
+fme-packager build
+fme package install speckle-0.1.0.fpkg
 
-For specke-fme, this is worked around by building custom tranformers which are in fact packaged mini workbooks that allow the parent transformer to have, say, a speckle-client feature in one port, a list of stream features in another and the complexity of blending these two squirreled away inside. What FME cannot do is pass a Client "object" to another transformer only the transformed results from another.
+# Or symlink for fast iteration (macOS)
+FME_FORMATS_DIR="$HOME/Library/Application Support/FME/Plugins"
+cp formats/SPECKLE.fmf "$FME_FORMATS_DIR"
+ln -s "$(pwd)/python/speckle_reader_writer.py" "$FME_FORMATS_DIR/python/"
+ln -s "$(pwd)/speckle_fme_core" "$FME_FORMATS_DIR/python/"
+```
 
-* *There are global variables for some simple datatypes. These are immutable once the workflow is instantiated.
+## Build Sequence
 
-## Getting Started
+| Stage | Focus | Status |
+|-------|-------|--------|
+| 0 | Toolchain validation — pyarrow in FME runtime (C-2.6), `fme-packager` hello-world, auth against `next.speckle.dev` | **Current** |
+| 1 | MeFi Publish — `ObjectsArtifactPipeline` → `ArtifactPipeline.upload_dir()` | Pending |
+| 2 | FMEWriter + FMEReader skeleton, FME feature → Speckle Mesh conversion | Pending |
+| 3 | HiFi Publish — expanded geometry types, materials, levels, collection hierarchy | Pending |
+| 4 | Receive — v2 artifacts download, SGEO decode, EAV → FME attributes | Pending |
+| 5 | Round-trip tests, large-model performance, error handling | Pending |
+| 6 | `.fpkg` packaging, FME Hub publish | Pending |
+| 7 | Launch | November 2026 |
 
-### Installation
+## Open Contracts
 
-**Invoking PIP install of Speckle for FME**
+| ID | What's uncertain |
+|----|-----------------|
+| C-2.6 | `pyarrow>=17` in FME's embedded Python runtime — test with `fme python -c "import pyarrow; print(pyarrow.__version__)"` |
+| C-2.3 | `DataObject.properties` shape consistency across connector versions |
+| C-3.5 | GraphQL fields exposing bundle status / artifact availability for a version |
+| C-7.1 | Does `complete` endpoint work for new unregistered connector types? |
 
-*macOS*
+## Legacy
 
-`fme python -m pip install specklepy --target ~/Library/Application\ Support/FME/Plugins/Python`
+The previous v2 Custom Transformer-based connector (Speckle 2.0, PythonCaller approach) is preserved on the [`legacy/v2-custom-transformers`](../../tree/legacy/v2-custom-transformers) branch for reference only. That codebase is not maintained.
 
-`fme python -m pip install requests --target '/Library/FME/<version:yyyy.x>/python'Python`
-`fme python -m pip install urllib3 --target '/Library/FME/<version:yyyy.x>/python'`
+## Issues
 
-…
+Tracked at [github.com/jsdbroughton/speckle-fme/issues](https://github.com/jsdbroughton/speckle-fme/issues).
