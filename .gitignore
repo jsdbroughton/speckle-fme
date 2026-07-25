@@ -73,3 +73,5 @@ fme/Workspaces/Sandbox.fmw.recover
 *.recover
 *.recover
 .gitignore.orig
+
+.DS_Store
