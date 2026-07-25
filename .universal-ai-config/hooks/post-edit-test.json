@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); exit(0 if str(d.get('tool_input',{}).get('file_path','')).endswith('.py') else 1)\" && cd \"$(git rev-parse --show-toplevel)\" && uv run pytest tests/ -m 'not integration' -x -q --tb=short 2>&1 | tail -10 || true",
+        "timeout": 60,
+        "description": "Run unit tests after editing Python source files"
+      }
+    ]
+  }
+}
