@@ -36,10 +36,6 @@ tests/              # pytest — unit + integration
 typings/            # fmeobjects stubs (github.com/urbansurgery/fmeobjects)
 ```
 
-## Local repo path
-
-`/Users/jonathonbroughton/Documents/repos/Jonathon/speckle-fme`
-
 ## Issue tracker
 
 GitHub Issues at `github.com/jsdbroughton/speckle-fme/issues`. Not Linear, not Jira.
