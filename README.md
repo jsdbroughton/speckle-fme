@@ -44,11 +44,14 @@ tests/
   test_bundle_publish.py  End-to-end Publish (integration, requires server)
   test_bundle_receive.py  End-to-end Receive (integration, requires server)
 typings/fmeobjects/   fmeobjects stub typings for IDE type-checking
+docs/installation.md  Full developer setup guide
 package.yml           fme-packager manifest
 pyproject.toml        Python project / dependency definition (uv)
 ```
 
 ## Development Setup
+
+See **[docs/installation.md](docs/installation.md)** for the full setup guide, including FME PATH configuration and the confirmed version matrix.
 
 ```bash
 git clone https://github.com/jsdbroughton/speckle-fme
@@ -60,7 +63,7 @@ cp .env.example .env   # fill in SPECKLE_TOKEN and test project IDs
 ### Unit tests (no FME, no server)
 
 ```bash
-uv run pytest tests/test_basic_speckle_installation_check.py tests/test_geometry.py -v
+uv run pytest tests/test_geometry.py tests/test_bundle_schema.py -v
 ```
 
 ### Integration tests (requires Speckle Next credentials in `.env`)
@@ -72,23 +75,23 @@ uv run pytest tests/test_bundle_publish.py tests/test_bundle_receive.py -v
 ### Loading in FME Workbench (dev loop)
 
 ```bash
-# Build and install the .fpkg
-fme-packager build
-fme package install speckle-0.1.0.fpkg
-
-# Or symlink for fast iteration (macOS)
+# Symlink for fast iteration (macOS) — restart Workbench after any change
 FME_FORMATS_DIR="$HOME/Library/Application Support/FME/Plugins"
 cp formats/SPECKLE.fmf "$FME_FORMATS_DIR"
-ln -s "$(pwd)/python/speckle_reader_writer.py" "$FME_FORMATS_DIR/python/"
-ln -s "$(pwd)/speckle_fme_core" "$FME_FORMATS_DIR/python/"
+ln -sf "$(pwd)/python/speckle_reader_writer.py" "$FME_FORMATS_DIR/python/"
+ln -sf "$(pwd)/speckle_fme_core" "$FME_FORMATS_DIR/python/"
+
+# Or build and install the .fpkg
+fme-packager build
+fme package install speckle-0.1.0.fpkg
 ```
 
 ## Build Sequence
 
 | Stage | Focus | Status |
 |-------|-------|--------|
-| 0 | Toolchain validation — pyarrow in FME runtime (C-2.6), `fme-packager` hello-world, auth against `next.speckle.dev` | **Current** |
-| 1 | MeFi Publish — `ObjectsArtifactPipeline` → `ArtifactPipeline.upload_dir()` | Pending |
+| 0 | Toolchain validation — pyarrow in FME runtime, `fme-packager` hello-world, auth against `next.speckle.dev` | ✅ Complete |
+| 1 | MeFi Publish — `ObjectsArtifactPipeline` → `ArtifactPipeline.upload_dir()` | **Current** |
 | 2 | FMEWriter + FMEReader skeleton, FME feature → Speckle Mesh conversion | Pending |
 | 3 | HiFi Publish — expanded geometry types, materials, levels, collection hierarchy | Pending |
 | 4 | Receive — v2 artifacts download, SGEO decode, EAV → FME attributes | Pending |
