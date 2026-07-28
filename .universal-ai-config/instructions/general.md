@@ -9,11 +9,13 @@ An **experimental Speckle Next v0** — a native FME Format Reader/Writer plugin
 
 ## Toolchain
 
-- **Python ≥3.10** — match FME's embedded runtime version (confirm C-2.6 before committing)
-- **uv** — dependency management (`uv sync`, `uv run`, `uv add`). Never use `pip install` directly.
+- **Python 3.14.5** — FME 2026.2 embeds Python 3.14.5 at `/Library/FME/2026.2/fmepython314/`. C-2.6 is confirmed closed: pyarrow 25.0.0 ships a `cp314` wheel for macOS arm64, no source build needed.
+- **`fme python`** — always use this wrapper (not bare `python3`) for FME runtime installs. Packages land in `~/Library/Application Support/FME/Plugins/Python/python314/`.
+- **uv** — dependency management for the project venv (`uv sync`, `uv run`, `uv add`). Never use `pip install` directly in the project venv.
 - **pytest** — all tests. `uv run pytest` to run.
-- **fme-packager** — builds `.fpkg` distribution artifact
-- **specklepy[bundle]** — the only Speckle SDK path used. `operations.send()`/`receive()` are NOT used.
+- **fme-packager** — builds `.fpkg` distribution artifact. Install via `fme python -m pip install fme-packager`.
+- **specklepy[bundle]** — the only Speckle SDK path used. `operations.send()`/`receive()` are NOT used. **Must install from GitHub `main`** (`git+https://github.com/specklesystems/specklepy.git@main`) — the PyPI release does not include `specklepy.bundle`.
+- **sgeo.decode WIP** — `specklepy.bundle.sgeo` has `encode()` but `decode()` is not yet on `main`. It exists on a branch (done for Blender receive). Wait for it to land on `main` before implementing the Stage 4 Receive path — do not port from the TypeScript reference or pull from the feature branch.
 
 ## Hard constraints
 
