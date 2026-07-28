@@ -2,7 +2,7 @@
 
 A native FME Format Reader/Writer for [Speckle Next](https://next.speckle.dev) — reads and writes Speckle projects as a first-class FME format using the Speckle Next data plane (parquet bundle + SGEO geometry).
 
-> **Status:** Stage 0 — toolchain validation. November 2026 milestone.
+> **Status:** Stage 1 — MeFi Publish. November 2026 milestone.
 
 ## Overview
 
@@ -17,9 +17,9 @@ Key design choices:
 
 ## Requirements
 
-- FME ≥ 2026.1
-- Python ≥ 3.10 (matching FME's embedded runtime — see open contract C-2.6)
-- `specklepy[bundle]` — `pyarrow>=17`, `duckdb>=1.1`
+- FME ≥ 2026.1 with a developer licence
+- FME 2026.2 embeds Python 3.14.5 — see [docs/installation.md](docs/installation.md) for PATH setup
+- `specklepy[bundle]` installed from GitHub `main` (not PyPI) — `pyarrow>=17`, `duckdb>=1.1`
 - Speckle Next account and Personal Access Token
 
 ## Repository Structure
@@ -98,12 +98,13 @@ ln -s "$(pwd)/speckle_fme_core" "$FME_FORMATS_DIR/python/"
 
 ## Open Contracts
 
-| ID | What's uncertain |
-|----|-----------------|
-| C-2.6 | `pyarrow>=17` in FME's embedded Python runtime — test with `fme python -c "import pyarrow; print(pyarrow.__version__)"` |
-| C-2.3 | `DataObject.properties` shape consistency across connector versions |
-| C-3.5 | GraphQL fields exposing bundle status / artifact availability for a version |
-| C-7.1 | Does `complete` endpoint work for new unregistered connector types? |
+| ID | What's uncertain | Status |
+|----|-----------------|--------|
+| C-2.6 | `pyarrow>=17` in FME's embedded Python runtime | ✅ Closed — pyarrow 25.0.0, Python 3.14.5, `cp314` wheel confirmed |
+| C-2.3 | `DataObject.properties` shape consistency across connector versions | ❓ Open |
+| C-3.5 | GraphQL fields exposing bundle status / artifact availability for a version | ❓ Open |
+| C-7.1 | Does `complete` endpoint work for new unregistered connector types? | ❓ Open |
+| sgeo.decode | `specklepy.bundle.sgeo.decode()` not yet on `main` (WIP, exists on branch) | ⏳ Waiting — blocks Stage 4 only |
 
 ## Legacy
 
